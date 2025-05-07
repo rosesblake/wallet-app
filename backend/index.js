@@ -40,7 +40,7 @@ const buildPath = path.join(__dirname, "../frontend/build");
 if (fs.existsSync(buildPath)) {
   app.use(express.static(buildPath));
 
-  app.get("*", (req, res) => {
+  app.get("/*", (req, res) => {
     console.log("Catch-all hit:", req.originalUrl);
     res.sendFile(path.join(buildPath, "index.html"));
   });
