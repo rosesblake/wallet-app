@@ -2,15 +2,17 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const cookieParser = require("cookie-parser");
 const fs = require("fs");
+
 const authRoutes = require("./routes/auth");
 const dashboardRoutes = require("./routes/dashboard");
 const depositRoutes = require("./routes/deposit");
 const transactionsRoutes = require("./routes/transactions");
 
-const cookieParser = require("cookie-parser"); //store JWT safely in cookies
-
 const app = express();
+
+// Middleware
 app.use(express.json());
 app.use(cookieParser());
 
@@ -25,23 +27,29 @@ app.use(
     credentials: true,
   })
 );
+
+// API Routes
 app.use("/auth", authRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/deposit", depositRoutes);
 app.use("/transactions", transactionsRoutes);
 
-if (process.env.NODE_ENV === "production") {
-  const buildPath = path.join(__dirname, "../frontend/build");
+// Serve React frontend
+const buildPath = path.join(__dirname, "../frontend/build");
 
-  if (fs.existsSync(buildPath)) {
-    app.use(express.static(buildPath));
+if (fs.existsSync(buildPath)) {
+  app.use(express.static(buildPath));
 
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(buildPath, "index.html"));
-    });
-  } else {
-    console.warn("⚠️ frontend/build not found – skipping static serve.");
-  }
+  app.get("*", (req, res) => {
+    console.log("Catch-all hit:", req.originalUrl);
+    res.sendFile(path.join(buildPath, "index.html"));
+  });
+} else {
+  console.warn("⚠️ frontend/build not found – skipping static serve.");
 }
+
+// Start server
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Backend running on port ${PORT}`);
+});
